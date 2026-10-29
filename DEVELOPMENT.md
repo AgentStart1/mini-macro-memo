@@ -15,3 +15,5 @@ checkout. Compare build duration and cache transfer sizes; a cache hit alone doe
 not establish a speedup. After changing Expo dependencies or the generated
 Wrapper version, verify that the build resolves the required versions correctly.
 Tag builds retain the existing separate GitHub Release upload job.
+
+This fork-only branch exercises pull-request cache restoration.
