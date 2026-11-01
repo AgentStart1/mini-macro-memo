@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Button, StyleSheet, TextInput } from 'react-native';
 
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -9,26 +9,23 @@ import { useSecureString } from '@/hooks/use-secure-string';
 
 export default function SettingScreen() {
   const { value, loading, saveValue, clearValue } = useSecureString('apifyToken');
-  const [draft, setDraft] = useState('');
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
+  const [draft, setDraft] = useState<string | null>(null);
 
   const saveToken = async () => {
-    const trimmed = draft.trim();
+    const trimmed = (draft ?? value).trim();
     if (!trimmed) {
       Alert.alert('Token required', 'Enter your Apify token before saving.');
       return;
     }
 
     await saveValue(trimmed);
+    setDraft(null);
     Alert.alert('Saved', 'Apify token saved securely on this device.');
   };
 
   const clearToken = async () => {
     await clearValue();
-    setDraft('');
+    setDraft(null);
     Alert.alert('Cleared', 'Stored token has been removed.');
   };
 
@@ -54,7 +51,7 @@ export default function SettingScreen() {
           placeholder="apify_api_xxxxxxxxx"
           secureTextEntry
           style={styles.input}
-          value={draft}
+          value={draft ?? value}
         />
         <ThemedText>
           Status: {value ? 'Token saved in secure storage.' : 'No token saved yet.'}

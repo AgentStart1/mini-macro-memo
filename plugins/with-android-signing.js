@@ -27,6 +27,11 @@ const ENV_KEYS = {
 
 const DEFAULT_KEYSTORE_FILENAME = 'release.keystore';
 
+// Keep stdout available for machine-readable Expo config commands.
+function logSigning(message) {
+  process.stderr.write(`${message}\n`);
+}
+
 function getEnvValue(primaryKey, fallbackKeys = []) {
   const candidates = [primaryKey, ...fallbackKeys];
   for (const key of candidates) {
@@ -75,7 +80,7 @@ function resolveKeystoreMaterial(signingEnv) {
   const signPathAbs = resolveAbsolutePath(signingEnv.signPath);
 
   if (signPathAbs && fs.existsSync(signPathAbs) && fs.statSync(signPathAbs).isFile()) {
-    console.info(`Keystore file found at: ${signPathAbs}`);
+    logSigning(`Keystore file found at: ${signPathAbs}`);
     return {
       mode: 'file',
       sourceFilePath: signPathAbs,
@@ -110,7 +115,7 @@ function resolveKeystoreMaterial(signingEnv) {
     materialPath = path.join(appAndroidAbs, DEFAULT_KEYSTORE_FILENAME);
   }
 
-  console.info(`Keystore material resolved: mode=${materialPath ? 'file' : 'base64'}, path=${materialPath}`);
+  logSigning(`Keystore material resolved: mode=${materialPath ? 'file' : 'base64'}, path=${materialPath}`);
 
   return {
     mode: 'base64',
@@ -154,7 +159,7 @@ function withSigningGradleProperties(config, signingEnv, keystoreMaterial) {
         modConfig.modResults.push({ type: 'property', key, value });
       }
     }
-    console.info('Android gradle.properties configured for signing.');
+    logSigning('Android gradle.properties configured for signing.');
     return modConfig;
   });
 }
@@ -184,7 +189,7 @@ function withSigningBuildGradle(config) {
       );
     }
 
-    console.info('Android build.gradle configured for signing.');
+    logSigning('Android build.gradle configured for signing.');
     modConfig.modResults.contents = contents;
     return modConfig;
   });
@@ -210,7 +215,7 @@ function withSigningKeystoreCopy(config, keystoreMaterial) {
           fs.copyFileSync(keystoreMaterial.sourceFilePath, destination);
         }
 
-        console.info(`Keystore file copied to: ${destination}`);
+        logSigning(`Keystore file copied to: ${destination}`);
         return modConfig;
       }
 
@@ -225,7 +230,7 @@ function withSigningKeystoreCopy(config, keystoreMaterial) {
         fs.copyFileSync(keystoreMaterial.materialPath, destination);
       }
 
-      console.info(`Keystore file copied to: ${destination}`);
+      logSigning(`Keystore file copied to: ${destination}`);
 
       return modConfig;
     },
@@ -236,14 +241,14 @@ function withAndroidSigning(config) {
   const signingEnv = getSigningEnv();
 
   if (!hasAnySigningEnv(signingEnv)) {
-    console.info('No Android signing environment variables found. Skipping Android signing configuration.');
+    logSigning('No Android signing environment variables found. Skipping Android signing configuration.');
     return config;
   }
 
   validateSigningEnv(signingEnv);
   const keystoreMaterial = resolveKeystoreMaterial(signingEnv);
 
-  console.info('Configuring Android signing with the provided environment variables.');
+  logSigning('Configuring Android signing with the provided environment variables.');
 
   return withSigningKeystoreCopy(
     withSigningBuildGradle(

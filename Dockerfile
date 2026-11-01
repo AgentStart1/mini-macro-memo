@@ -1,10 +1,10 @@
-FROM node:25 AS builder
+FROM node:26 AS builder
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* ./
-RUN npm install --frozen-lockfile || yarn install --frozen-lockfile
+RUN npm ci
 COPY . .
 # 构建 Expo Web 静态文件
-RUN npx expo export:web
+RUN npx expo export --platform web
 
 # 使用 nginx 作为静态文件服务器
 FROM nginx:stable-alpine
