@@ -1,4 +1,4 @@
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getApifyBalance, type ApifyBalanceInfo } from '@/services/apify-service';

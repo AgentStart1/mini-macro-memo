@@ -1,5 +1,42 @@
 # Development
 
+## SDK and build requirements
+
+The app uses Expo SDK 58, React Native 0.88.1, and Node.js 26 or newer.
+CI and the web Docker build use Node.js 26; Expo 58 does not support Node.js 25.
+Expo prebuild generates Gradle 9.4.1 from the SDK 58 template. Do not patch the
+ignored native directories to upgrade the Wrapper independently of the SDK.
+
+React and React DOM remain at 19.3.1 and Worklets at 0.13.1, preserving the
+Dependabot patch updates. These satisfy React Native's React peer range and
+Reanimated 4.7's Worklets 0.13.x compatibility range. The SDK currently recommends
+19.3.0 and 0.13.0 exactly, so `expo.install.exclude` has exceptions scoped to those
+specific recommendations. Revisit the exceptions when Expo's recommendations
+change; do not use them to bypass checks for a different release line.
+
+Run these checks after installing with `npm ci`:
+
+```sh
+npx expo install --check
+npx expo-doctor
+npx tsc --noEmit
+npm run lint
+npx expo export --platform all
+npx expo prebuild --platform android --no-install
+cd android
+./gradlew assembleRelease
+```
+
+On Windows, use `gradlew.bat` for the last command. A local Android SDK and JDK
+are required for native compilation. The GitHub workflow runs the compatibility,
+type, and lint checks before generating and building the release APK. Expo
+configuration plugins send diagnostics to stderr so commands such as
+`npx expo config --json` produce valid JSON on stdout.
+
+SDK 58 Router components use navigation types and primitives exported by
+`expo-router/tabs` and `expo-router/react-navigation`. Use those exports for
+Router custom tab buttons so types match Router's bundled navigation components.
+
 ## Android CI cache
 
 The Android workflow uses `gradle/actions/setup-gradle` to cache Gradle User Home,
@@ -22,6 +59,9 @@ Dependabot checks root npm dependencies, GitHub Actions, and Docker base images
 weekly. Each ecosystem allows up to five open version-update pull requests.
 Minor and patch npm updates are grouped together, as are minor and patch Actions
 updates; major updates remain separate for review. Updates are not auto-merged.
+Expo, React Native, and native module updates must be reviewed together against
+the target SDK's compatibility table, even when Dependabot labels them minor
+updates (for example React Native 0.x releases).
 
 For npm updates, run `npm ci` and `npx expo install --check` to verify Expo SDK
 compatibility before reviewing the Android build. Dependabot does not manage the

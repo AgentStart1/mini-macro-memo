@@ -21,11 +21,19 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 25
+          node-version: 26
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check SDK compatibility and source
+        run: |
+          npx expo install --check
+          npx expo-doctor
+          npx tsc --noEmit
+          npm run lint
+          npx expo export --platform web
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
